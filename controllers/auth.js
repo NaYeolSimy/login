@@ -24,7 +24,7 @@ exports.login = async (req, res) => {
 			"SELECT * FROM users WHERE email = ?",
 			[email],
 			async (error, results) => {
-				console.log(results);
+				console.log("로그인", results[0].password);
 				if (
 					!results ||
 					!(await bcrypt.compare(password, results[0].password))
@@ -33,8 +33,9 @@ exports.login = async (req, res) => {
 						message: "Email or Password is incorrect",
 					});
 				} else {
-					const id = results[0].id;
+					const id = results[0].user_id;
 
+					console.log("id값", id);
 					const token = jwt.sign({ id }, process.env.JWT_SECRET, {
 						expiresIn: process.env.JWT_EXPIRES_IN,
 					});
@@ -112,13 +113,14 @@ exports.isLoggedIn = async (req, res, next) => {
 				process.env.JWT_SECRET
 			);
 
-			console.log(decoded);
+			console.log("디코드", decoded);
 
 			//2) Check if the user still exists
 			db.query(
-				"SELECT * FROM users WHERE id = ?",
+				"SELECT * FROM users WHERE user_id = ?",
 				[decoded.id],
 				(error, result) => {
+					console.log(error);
 					console.log(result);
 
 					if (!result) {
